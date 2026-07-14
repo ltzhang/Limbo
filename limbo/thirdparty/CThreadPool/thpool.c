@@ -87,7 +87,7 @@ typedef struct thpool_{
 
 static int  thread_init(thpool_* thpool_p, struct thread** thread_p, int id);
 static void* thread_do(struct thread* thread_p);
-static void  thread_hold();
+static void  thread_hold(int sig);
 static void  thread_destroy(struct thread* thread_p);
 
 static int   jobqueue_init(thpool_* thpool_p);
@@ -283,7 +283,8 @@ static int thread_init (thpool_* thpool_p, struct thread** thread_p, int id){
 
 
 /* Sets the calling thread on hold */
-static void thread_hold () {
+static void thread_hold (int sig) {
+	(void)sig;
 	threads_on_hold = 1;
 	while (threads_on_hold){
 		sleep(1);
