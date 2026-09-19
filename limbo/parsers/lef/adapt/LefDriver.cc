@@ -694,8 +694,12 @@ bool Driver::parse_file(const std::string &filename)
     int res = lefrRead(f, filename.c_str(), (void*)userData);
     // reset to NULL 
     lefDB = NULL; 
-    if (res)
-        std::cerr << "Reader returns bad status\n"; 
+    // A nonzero reader status means the callbacks stopped part-way through, so
+    // the database they populated is incomplete.  Report the failure to the
+    // caller instead of handing on a partial parse as a clean one.
+    bool ok = (res == 0);
+    if (!ok)
+        std::cerr << "LEF reader returns bad status " << res << " on " << filename << "\n";
 
     (void)lefrPrintUnusedCallbacks(stderr);
     (void)lefrReleaseNResetMemory();
@@ -762,9 +766,9 @@ bool Driver::parse_file(const std::string &filename)
 
     lefrClear(); 
     fclose(f); 
-    free(userData); 
+    free(userData);
 
-    return true; 
+    return ok;
 }
 
 bool read(LefDataBase& db, const string& lefFile)

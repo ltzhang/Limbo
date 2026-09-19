@@ -365,10 +365,13 @@ SolverProperty DualMinCostFlow<T, V>::solve(typename DualMinCostFlow<T, V>::solv
         totalSupply += m_mSupply[it]; 
     limboAssert(totalSupply == 0);
 #endif
-    // solve min-cost flow problem 
-    SolverProperty status = solver->operator()(this); 
-    // apply solution 
-    applySolution(); 
+    // solve min-cost flow problem
+    SolverProperty status = solver->operator()(this);
+    // apply solution only when it is certified optimal; a non-optimal dual
+    // solution is not a valid set of primal potentials, and writing it back
+    // would hand the caller plausible-but-wrong positions.
+    if (status == OPTIMAL)
+        applySolution();
 
 #ifdef DEBUG_DUALMINCOSTFLOW
     printGraph(true);

@@ -2691,8 +2691,12 @@ bool Driver::parse_file(const std::string &filename)
     defDB = NULL; 
     defDriver = NULL; 
 
-    if (res)
-        limboPrint(limbo::kERROR, "Reader returns bad status.\n", filename.c_str());
+    // A nonzero reader status means the callbacks stopped part-way through, so
+    // the database they populated is incomplete.  Report the failure to the
+    // caller instead of handing on a partial parse as a clean one.
+    bool ok = (res == 0);
+    if (!ok)
+        limboPrint(limbo::kERROR, "DEF reader returns bad status %d on %s.\n", res, filename.c_str());
 
     (void)defrPrintUnusedCallbacks(stdout);
     (void)defrReleaseNResetMemory();
@@ -2809,7 +2813,7 @@ bool Driver::parse_file(const std::string &filename)
     defrClear();
     fclose(f); 
 
-    return true; 
+    return ok; 
 }
 
 bool read(DefDataBase& db, const string& defFile)
